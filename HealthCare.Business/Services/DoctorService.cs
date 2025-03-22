@@ -24,6 +24,12 @@ namespace HealthCare.Business.Services
         {
             if (!Validate(new DoctorValidator(), doctor)) return;
 
+            if (_repository.Find(x => x.Document == doctor.Document).Result.Any())
+            {
+                Notify("Já existe um médico cadastrado com o documento informado.");
+                return;
+            }
+
             await _repository.CreateAsync(doctor);
         }
 
