@@ -4,6 +4,6 @@ namespace HealthCare.Business.Interfaces
 {
     public interface IPatientRepository : IRepository<Patient>
     {
-        Task<Patient> GetPatientByDocument(string document);
+        Task<Patient?> GetPatientByDocument(string document);
     }
 }
