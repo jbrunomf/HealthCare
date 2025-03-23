@@ -42,7 +42,7 @@ namespace HealthCare.Business.Services
 
         public async Task DeleteDoctorAsync(Guid id)
         {
-            await _repository.Delete(id);
+            await _repository.Remove(id);
         }
     }
 }

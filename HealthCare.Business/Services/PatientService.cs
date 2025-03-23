@@ -46,7 +46,7 @@ namespace HealthCare.Business.Services
             }
 
 
-            await _repository.Delete(id);
+            await _repository.Remove(id);
         }
     }
 }

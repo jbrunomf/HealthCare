@@ -13,7 +13,7 @@ namespace HealthCare.Data.Repository
             
         }
 
-        public async Task<Patient> GetPatientByDocument(string document)
+        public async Task<Patient?> GetPatientByDocument(string document)
         {
             return await DbSet.FirstOrDefaultAsync(p => p.Document == document);
         }
