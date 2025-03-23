@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HealthCare.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250322225507_Initial")]
+    [Migration("20250323151515_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -76,22 +76,6 @@ namespace HealthCare.Data.Migrations
                     b.HasIndex("SpecialtyId");
 
                     b.ToTable("Doctors", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("99268565-84d0-46c3-b9ed-c7c48bc86f55"),
-                            CRM = "12345",
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            DateOfBirth = new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            Document = "1234567890",
-                            Email = "john.doe@example.com",
-                            FirstName = "John",
-                            IsActive = true,
-                            LastName = "Doe",
-                            SpecialtyId = new Guid("84d9322d-1ec9-408d-90e5-ad06601b2c70"),
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
-                        });
                 });
 
             modelBuilder.Entity("HealthCare.Business.Models.Patient", b =>

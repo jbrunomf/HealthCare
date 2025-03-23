@@ -2,7 +2,7 @@
 
 namespace HealthCare.Business.Notifications
 {
-    class Notifier : INotifier
+    public class Notifier : INotifier
     {
         private List<Notification> _notifications;
 

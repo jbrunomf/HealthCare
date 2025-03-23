@@ -72,11 +72,6 @@ namespace HealthCare.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                table: "Doctors",
-                columns: new[] { "Id", "CRM", "CreatedAt", "DateOfBirth", "Document", "Email", "FirstName", "IsActive", "LastName", "SpecialtyId", "UpdatedAt" },
-                values: new object[] { new Guid("99268565-84d0-46c3-b9ed-c7c48bc86f55"), "12345", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), new DateTime(1980, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "1234567890", "john.doe@example.com", "John", true, "Doe", new Guid("84d9322d-1ec9-408d-90e5-ad06601b2c70"), new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified) });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Doctors_SpecialtyId",
                 table: "Doctors",
