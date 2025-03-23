@@ -1,4 +1,5 @@
 ﻿using HealthCare.Business.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -44,19 +45,11 @@ namespace HealthCare.Data.Mappings
                 .WithMany()
                 .HasForeignKey(d => d.SpecialtyId);
 
-            builder.HasData(new Doctor
-            {
-                Id = Guid.NewGuid(),
-                FirstName = "John",
-                LastName = "Doe",
-                Document = "1234567890",
-                CRM = "12345",
-                Email = "john.doe@example.com",
-                DateOfBirth = new DateTime(1980, 1, 1),
-                IsActive = true,
-                SpecialtyId = Guid.NewGuid()
-            });
-
+            builder.HasOne<IdentityUser>()
+                .WithOne()
+                .HasForeignKey<Doctor>(d => d.IdentityUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
             builder.ToTable("Doctors");
         }
     }
