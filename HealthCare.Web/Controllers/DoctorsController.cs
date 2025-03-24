@@ -62,13 +62,13 @@ namespace HealthCare.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             [Bind(
-                "FirstName,LastName,Document,SpecialtyId,CRM,Email,DateOfBirth,IsActive,Id,CreatedAt,UpdatedAt,IdentityUser, IdentityUserId, Username, Password")]
+                "FirstName,LastName,Document,SpecialtyId,CRM,Email,DateOfBirth,IsActive,Id,CreatedAt,UpdatedAt,IdentityUserId, Username, Password")]
             Doctor doctor)
         {
             if (ModelState.IsValid)
             {
                 //Identity
-                var identityUser = new IdentityUser { UserName = doctor.Username };
+                var identityUser = new IdentityUser { UserName = doctor.Username, Email = doctor.Email};
                 var result = await _userManager.CreateAsync(identityUser, doctor.Password);
 
                 if (result.Succeeded)
