@@ -55,7 +55,6 @@ namespace HealthCare.Data.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("IdentityUserId")
-                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("IsActive")
@@ -83,7 +82,8 @@ namespace HealthCare.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IdentityUserId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[IdentityUserId] IS NOT NULL");
 
                     b.HasIndex("SpecialtyId");
 
@@ -302,10 +302,12 @@ namespace HealthCare.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -342,10 +344,12 @@ namespace HealthCare.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -360,8 +364,7 @@ namespace HealthCare.Data.Migrations
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", null)
                         .WithOne()
                         .HasForeignKey("HealthCare.Business.Models.Doctor", "IdentityUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("HealthCare.Business.Models.Specialty", "Specialty")
                         .WithMany()
