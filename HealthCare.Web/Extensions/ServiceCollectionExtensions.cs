@@ -21,6 +21,8 @@ public static class ServiceCollectionExtensions
         services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();
+        
+
 
         services.AddRazorPages();
 

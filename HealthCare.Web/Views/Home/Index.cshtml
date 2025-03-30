@@ -13,5 +13,5 @@
 }
 @if (User.IsInRole("Paciente"))
 {
-	<a class="btn btn-info">Painel do Paciente</a>
+	<a asp-controller="Appointments" asp-action="Index" class="btn btn-info">Appointments View</a>
 }
