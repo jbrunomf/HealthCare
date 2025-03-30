@@ -1,8 +1,4 @@
-﻿using System.Drawing.Text;
-using Azure.Identity;
-using HealthCare.Business.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HealthCare.Business.Models;
 using HealthCare.Data.Context;
@@ -10,28 +6,27 @@ using Microsoft.AspNetCore.Identity;
 
 namespace HealthCare.Web.Controllers
 {
-    public class DoctorsController : Controller
+    public class PatientsController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly IDoctorService _service;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
-        public DoctorsController(AppDbContext context, IDoctorService service, UserManager<IdentityUser> userManager)
+        public PatientsController(AppDbContext context, UserManager<IdentityUser> userManager,
+            RoleManager<IdentityRole> roleManager)
         {
             _context = context;
-            _service = service;
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
-        // GET: Doctors
+        // GET: Patients
         public async Task<IActionResult> Index()
         {
-            var appDbContext = _context.Doctors.Include(d => d.Specialty);
-            return View(await appDbContext.ToListAsync());
+            return View(await _context.Patients.ToListAsync());
         }
 
-        // GET: Doctors/Details/5
+        // GET: Patients/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -39,47 +34,43 @@ namespace HealthCare.Web.Controllers
                 return NotFound();
             }
 
-            var doctor = await _context.Doctors
-                .Include(d => d.Specialty)
+            var patient = await _context.Patients
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (doctor == null)
+            if (patient == null)
             {
                 return NotFound();
             }
 
-            return View(doctor);
+            return View(patient);
         }
 
-        // GET: Doctors/Create
+        // GET: Patients/Create
         public IActionResult Create()
         {
-            ViewData["SpecialtyId"] = new SelectList(_context.Specialties, "Id", "Description");
             return View();
         }
 
-        // POST: Doctors/Create
+        // POST: Patients/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind(
-                "FirstName,LastName,Document,SpecialtyId,CRM,Email,DateOfBirth,IsActive,Id,CreatedAt,UpdatedAt,IdentityUserId, Username, Password")]
-            Doctor doctor)
+            [Bind("FirstName,LastName,Document,DateOfBirth,Email,IsActive,Id,Password,Username")]
+            Patient patient)
         {
             if (ModelState.IsValid)
             {
-                //Identity
-                var identityUser = new IdentityUser { UserName = doctor.Email, Email = doctor.Email};
-                var result = await _userManager.CreateAsync(identityUser, doctor.Password);
+                var identityUser = new IdentityUser() { UserName = patient.Email, Email = patient.Email };
+                var result = await _userManager.CreateAsync(identityUser, patient.Password);
 
                 if (result.Succeeded)
                 {
-                    doctor.CreatedAt = DateTime.Now;
-                    await _userManager.AddToRoleAsync(identityUser, "Doctor");
-                    doctor.IdentityUserId = identityUser.Id;
-                    
-                    _context.Add(doctor);
+                    patient.CreatedAt = DateTime.Now;
+                    await _userManager.AddToRoleAsync(identityUser, "Patient");
+                    patient.IdentityUserId = identityUser.Id;
+
+                    _context.Add(patient);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }
@@ -90,11 +81,10 @@ namespace HealthCare.Web.Controllers
                 }
             }
 
-            ViewData["SpecialtyId"] = new SelectList(_context.Specialties, "Id", "Description", doctor.SpecialtyId);
-            return View(doctor);
+            return View(patient);
         }
 
-        // GET: Doctors/Edit/5
+        // GET: Patients/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -102,26 +92,25 @@ namespace HealthCare.Web.Controllers
                 return NotFound();
             }
 
-            var doctor = await _context.Doctors.FindAsync(id);
-            if (doctor == null)
+            var patient = await _context.Patients.FindAsync(id);
+            if (patient == null)
             {
                 return NotFound();
             }
 
-            ViewData["SpecialtyId"] = new SelectList(_context.Specialties, "Id", "Description", doctor.SpecialtyId);
-            return View(doctor);
+            return View(patient);
         }
 
-        // POST: Doctors/Edit/5
+        // POST: Patients/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id,
-            [Bind("FirstName,LastName,Document,SpecialtyId,CRM,Email,DateOfBirth,IsActive,Id,CreatedAt,UpdatedAt")]
-            Doctor doctor)
+            [Bind("FirstName,LastName,Document,DateOfBirth,Email,IsActive,Id,CreatedAt,UpdatedAt")]
+            Patient patient)
         {
-            if (id != doctor.Id)
+            if (id != patient.Id)
             {
                 return NotFound();
             }
@@ -130,13 +119,12 @@ namespace HealthCare.Web.Controllers
             {
                 try
                 {
-                    _context.Update(doctor);
-                    doctor.UpdatedAt = DateTime.Now;
+                    _context.Update(patient);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!DoctorExists(doctor.Id))
+                    if (!PatientExists(patient.Id))
                     {
                         return NotFound();
                     }
@@ -149,11 +137,10 @@ namespace HealthCare.Web.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["SpecialtyId"] = new SelectList(_context.Specialties, "Id", "Description", doctor.SpecialtyId);
-            return View(doctor);
+            return View(patient);
         }
 
-        // GET: Doctors/Delete/5
+        // GET: Patients/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -161,35 +148,34 @@ namespace HealthCare.Web.Controllers
                 return NotFound();
             }
 
-            var doctor = await _context.Doctors
-                .Include(d => d.Specialty)
+            var patient = await _context.Patients
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (doctor == null)
+            if (patient == null)
             {
                 return NotFound();
             }
 
-            return View(doctor);
+            return View(patient);
         }
 
-        // POST: Doctors/Delete/5
+        // POST: Patients/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var doctor = await _context.Doctors.FindAsync(id);
-            if (doctor != null)
+            var patient = await _context.Patients.FindAsync(id);
+            if (patient != null)
             {
-                _context.Doctors.Remove(doctor);
+                _context.Patients.Remove(patient);
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool DoctorExists(Guid id)
+        private bool PatientExists(Guid id)
         {
-            return _context.Doctors.Any(e => e.Id == id);
+            return _context.Patients.Any(e => e.Id == id);
         }
     }
 }

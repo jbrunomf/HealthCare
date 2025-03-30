@@ -18,8 +18,11 @@ public static class ServiceCollectionExtensions
         //services.AddScoped<IPatientService, PatientService>();
         //services.AddScoped<IPatientRepository, PatientRepository>();
 
-        services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
-            .AddEntityFrameworkStores<AppDbContext>();
+        services.AddIdentity<IdentityUser, IdentityRole>()
+            .AddEntityFrameworkStores<AppDbContext>()
+            .AddDefaultTokenProviders();
+
+        services.AddRazorPages();
 
 
         return services;
