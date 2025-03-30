@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.CompilerServices;
 
 namespace HealthCare.Business.Models
 {
@@ -26,5 +27,6 @@ namespace HealthCare.Business.Models
         public virtual object? IdentityUser { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+
     }
 }
