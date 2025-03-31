@@ -48,5 +48,10 @@ namespace HealthCare.Business.Services
 
             await _repository.Remove(id);
         }
+
+        public Task<Patient> FindAsync(string id)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

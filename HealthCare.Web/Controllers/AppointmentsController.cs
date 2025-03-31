@@ -21,19 +21,17 @@ namespace HealthCare.Web.Controllers
         }
 
         // GET: Appointments
+        [Authorize(Roles = "Admin,Patient,Doctor,Paciente")]
         public async Task<IActionResult> Index()
         {
             if (!User.Identity.IsAuthenticated) return NotFound();
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-
             var patient = await _context.Patients.FirstOrDefaultAsync(p => p.IdentityUserId == userId);
 
             if (patient is null)
                 return NotFound("Patient not found");
-
-
+            
             ViewBag.Patient = patient;
 
             var appointments = _context.Appointments
@@ -65,7 +63,7 @@ namespace HealthCare.Web.Controllers
             return View(appointment);
         }
 
-        [Authorize(Roles = "Admin, Paciente")]
+        [Authorize(Roles = "Admin,Patient,Paciente")]
         public IActionResult Create()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -102,11 +100,9 @@ namespace HealthCare.Web.Controllers
                 _context.Add(appointment);
                 await _context.SaveChangesAsync();
 
-                
                 var patient = await _context.Patients.FindAsync(appointment.PatientId);
-
-                if (!string.IsNullOrEmpty(patient.Email))
-                    await _emailService.SendEmailAsync(patient.Email, "Medical Schedule",
+                
+                await _emailService.SendEmailAsync(patient.Email, "Medical Schedule",
                     "Medical Schedule Done!");
                 
                 return RedirectToAction(nameof(Index), appointment.PatientId);
