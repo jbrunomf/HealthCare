@@ -4,6 +4,8 @@
 	ViewData["Title"] = "Create";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="/js/Appointments/appointments.js"></script>
 
 <h1>Create</h1>
 
@@ -16,7 +18,7 @@
 			<div asp-validation-summary="ModelOnly" class="text-danger"></div>
 			<div class="form-group">
 				<label asp-for="DoctorId" class="control-label"></label>
-				<select asp-for="DoctorId" class="form-control" asp-items="ViewBag.DoctorId"></select>
+				<select asp-for="DoctorId" class="form-control" asp-items="ViewBag.DoctorId" id="doctorId"></select>
 			</div>
 			<div class="form-group">
 				<label asp-for="PatientId" class="control-label" hidden="hidden"></label>
@@ -24,8 +26,13 @@
 			</div>
 			<div class="form-group">
 				<label asp-for="AppointmentDate" class="control-label"></label>
-				<input asp-for="AppointmentDate" class="form-control" type="date"/>
+				<input asp-for="AppointmentDate" class="form-control" type="date" id="appointmentDate"/>
 				<span asp-validation-for="AppointmentDate" class="text-danger"></span>
+			</div>
+			<div class="form-group">
+				<label asp-for="MedicalSchedule" class="control-label"></label>
+				<select asp-for="MedicalScheduleId" class="form-control" id="medicalScheduleId"></select>
+				<span asp-validation-for="MedicalSchedule" class="text-danger"></span>
 			</div>
 			<div class="form-group">
 				<label asp-for="Notes" class="control-label"></label>
@@ -42,6 +49,7 @@
 <div>
 	<a asp-action="Index">Back to List</a>
 </div>
+
 
 @section Scripts {
 	@{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }

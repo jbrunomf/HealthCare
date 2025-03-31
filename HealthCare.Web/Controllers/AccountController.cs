@@ -9,8 +9,7 @@ namespace HealthCare.Web.Controllers
         private readonly SignInManager<IdentityUser> _manager;
 
         public AccountController(SignInManager<IdentityUser> manager)
-        {
-            _manager = manager;
+        {_manager = manager;
         }
 
         public IActionResult Login()

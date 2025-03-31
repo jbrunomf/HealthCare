@@ -4,6 +4,7 @@ using HealthCare.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HealthCare.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250330211152_medical-schedule")]
+    partial class medicalschedule
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -37,9 +40,6 @@ namespace HealthCare.Data.Migrations
                     b.Property<Guid>("DoctorId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("MedicalScheduleId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -56,8 +56,6 @@ namespace HealthCare.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DoctorId");
-
-                    b.HasIndex("MedicalScheduleId");
 
                     b.HasIndex("PatientId");
 
@@ -447,12 +445,6 @@ namespace HealthCare.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("HealthCare.Business.Models.MedicalSchedule", "MedicalSchedule")
-                        .WithMany("Appointments")
-                        .HasForeignKey("MedicalScheduleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("HealthCare.Business.Models.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
@@ -460,8 +452,6 @@ namespace HealthCare.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Doctor");
-
-                    b.Navigation("MedicalSchedule");
 
                     b.Navigation("Patient");
                 });
@@ -547,11 +537,6 @@ namespace HealthCare.Data.Migrations
             modelBuilder.Entity("HealthCare.Business.Models.Doctor", b =>
                 {
                     b.Navigation("MedicalSchedules");
-                });
-
-            modelBuilder.Entity("HealthCare.Business.Models.MedicalSchedule", b =>
-                {
-                    b.Navigation("Appointments");
                 });
 #pragma warning restore 612, 618
         }
