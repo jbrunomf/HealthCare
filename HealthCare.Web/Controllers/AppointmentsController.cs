@@ -6,6 +6,7 @@ using HealthCare.Business.Models;
 using HealthCare.Data.Context;
 using HealthCare.Data.Migrations;
 using Microsoft.AspNetCore.Authorization;
+using NuGet.ProjectModel;
 
 namespace HealthCare.Web.Controllers
 {
@@ -21,27 +22,25 @@ namespace HealthCare.Web.Controllers
         // GET: Appointments
         public async Task<IActionResult> Index()
         {
-            if (User.Identity.IsAuthenticated)
-            {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!User.Identity.IsAuthenticated) return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
 
-                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.IdentityUserId == userId);
+            var patient = await _context.Patients.FirstOrDefaultAsync(p => p.IdentityUserId == userId);
 
-                if (patient is null)
-                    return NotFound("Patient not found");
+            if (patient is null)
+                return NotFound("Patient not found");
 
 
-                ViewBag.Patient = patient;
+            ViewBag.Patient = patient;
 
-                var appDbContext = _context.Appointments
-                    .Where(a => a.PatientId == patient.Id)
-                    .Include(a => a.Doctor)
-                    .Include(a => a.Patient);
-                return View(await appDbContext.ToListAsync());
-            }
-
-            return NotFound();
+            var appointments = _context.Appointments
+                .Where(a => a.PatientId == patient.Id)
+                .Include(a => a.Doctor)
+                .Include(a => a.Patient)
+                .Include(a => a.MedicalSchedule);
+            return View(await appointments.ToListAsync());
         }
 
         // GET: Appointments/Details/5
@@ -55,6 +54,7 @@ namespace HealthCare.Web.Controllers
             var appointment = await _context.Appointments
                 .Include(a => a.Doctor)
                 .Include(a => a.Patient)
+                .Include(a => a.MedicalSchedule)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (appointment == null)
             {
@@ -69,9 +69,9 @@ namespace HealthCare.Web.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var patient = _context.Patients.FirstOrDefault(p => p.IdentityUserId == userId);
-            
+
             if (patient is null) return NotFound("Patient not found");
-            
+
             ViewData["DoctorId"] = new SelectList(_context.Doctors, "Id", "FirstName");
             ViewData["PatientId"] = new SelectList(_context.Patients, "Id", "FirstName", patient);
             return View();
@@ -83,14 +83,21 @@ namespace HealthCare.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
-            [Bind("DoctorId,PatientId,AppointmentDate,Notes,Status,Id,CreatedAt,UpdatedAt")]
+            [Bind("DoctorId,PatientId,AppointmentDate,Notes,Status,Id,CreatedAt,UpdatedAt,MedicalScheduleId")]
             Appointment appointment)
         {
             if (ModelState.IsValid)
             {
-                //appointment.Id = Guid.NewGuid();
+                //Validar se o schedule está disponível realmente
+                var schedule = await _context.MedicalSchedules.FindAsync(appointment.MedicalScheduleId);
+
+                if (schedule is not { IsAvailable: true })
+                    return BadRequest("O horário selecionado não está disponível");
+
+                schedule.IsAvailable = false;
                 appointment.Status = Appointment.AppointmentStatus.Scheduled;
                 appointment.CreatedAt = DateTime.Now;
+                _context.Update(schedule);
                 _context.Add(appointment);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index), appointment.PatientId);
@@ -115,8 +122,8 @@ namespace HealthCare.Web.Controllers
                 return NotFound();
             }
 
-            ViewData["DoctorId"] = new SelectList(_context.Doctors, "Id", "CRM", appointment.DoctorId);
-            ViewData["PatientId"] = new SelectList(_context.Patients, "Id", "Document", appointment.PatientId);
+            ViewData["DoctorId"] = new SelectList(_context.Doctors, "Id", "FirstName", appointment.DoctorId);
+            ViewData["PatientId"] = new SelectList(_context.Patients, "Id", "FirstName", appointment.PatientId);
             return View(appointment);
         }
 
@@ -126,7 +133,7 @@ namespace HealthCare.Web.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id,
-            [Bind("DoctorId,PatientId,AppointmentDate,Notes,Status,Id,CreatedAt,UpdatedAt")]
+            [Bind("DoctorId,PatientId,AppointmentDate,Notes,Status,Id,CreatedAt,UpdatedAt,MedicalScheduleId")]
             Appointment appointment)
         {
             if (id != appointment.Id)
@@ -138,6 +145,31 @@ namespace HealthCare.Web.Controllers
             {
                 try
                 {
+                    var lstSchedules =
+                        _context.MedicalSchedules.Where(s => s.Appointments.Contains(appointment));
+
+                    var pastSchedule = lstSchedules.FirstOrDefault(s => s.IsAvailable == false);
+
+                    if (pastSchedule is null)
+                        throw new Exception("Schedule not found");
+
+
+                    var actualSchedule = await _context.MedicalSchedules.FindAsync(appointment.MedicalScheduleId);
+
+                    if (actualSchedule is null)
+                    {
+                        throw new Exception("Schedule not found");
+                    }
+
+                    pastSchedule.IsAvailable = true;
+                    _context.Update(pastSchedule);
+                    await _context.SaveChangesAsync();
+
+                    _context.Update(actualSchedule);
+                    actualSchedule.IsAvailable = false;
+                    await _context.SaveChangesAsync();
+
+                    appointment.UpdatedAt = DateTime.Now;
                     _context.Update(appointment);
                     await _context.SaveChangesAsync();
                 }
@@ -189,7 +221,17 @@ namespace HealthCare.Web.Controllers
             var appointment = await _context.Appointments.FindAsync(id);
             if (appointment != null)
             {
-                _context.Appointments.Remove(appointment);
+                //Only change status
+                appointment.Status = Appointment.AppointmentStatus.Cancelled;
+                _context.Update(appointment);
+                //_context.Appointments.Remove(appointment);
+
+                var schedule = await _context.MedicalSchedules.FindAsync(appointment.MedicalScheduleId);
+                if (schedule is not null)
+                {
+                    schedule.IsAvailable = true;
+                    _context.Update(schedule);
+                }
             }
 
             await _context.SaveChangesAsync();
@@ -199,6 +241,16 @@ namespace HealthCare.Web.Controllers
         private bool AppointmentExists(Guid id)
         {
             return _context.Appointments.Any(e => e.Id == id);
+        }
+
+        public List<MedicalSchedule> GetAvailableSlots(Guid doctorId, DateTime date)
+        {
+            var slots = _context.MedicalSchedules
+                .Where(s => s.DoctorId == doctorId && s.StartTime.Date == date.Date && s.IsAvailable)
+                .OrderBy(s => s.StartTime)
+                .ToList();
+
+            return slots;
         }
     }
 }

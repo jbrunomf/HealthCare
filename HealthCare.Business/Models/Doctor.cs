@@ -28,5 +28,6 @@ namespace HealthCare.Business.Models
         public string Username { get; set; }
         public string Password { get; set; }
 
+        [NotMapped] public List<MedicalSchedule> MedicalSchedules { get; set; } = new();
     }
 }

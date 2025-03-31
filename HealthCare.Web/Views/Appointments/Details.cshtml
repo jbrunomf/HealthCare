@@ -15,19 +15,19 @@
             @Html.DisplayNameFor(model => model.Doctor)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Doctor.CRM)
+            @Html.DisplayFor(model => model.Doctor.FirstName)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Patient)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Patient.Document)
+            @Html.DisplayFor(model => model.Patient.FirstName)
         </dd>
         <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.AppointmentDate)
+            @Html.DisplayNameFor(model => model.MedicalSchedule)
         </dt>
         <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.AppointmentDate)
+            @Html.DisplayFor(model => model.MedicalSchedule.StartTime)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.Notes)
@@ -56,6 +56,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
+    <a asp-action="Edit" asp-route-id="@Model?.Id">Reschedule</a> |
     <a asp-action="Index">Back to List</a>
 </div>

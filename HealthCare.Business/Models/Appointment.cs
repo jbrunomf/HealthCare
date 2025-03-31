@@ -19,7 +19,10 @@ namespace HealthCare.Business.Models
         public string? Notes { get; set; }
         public AppointmentStatus Status { get; set; } = AppointmentStatus.Scheduled;
 
-
+        public Guid MedicalScheduleId { get; set; }
+        [DisplayName("Schedule Date")]
+        public MedicalSchedule? MedicalSchedule { get; set; }
+        
         public enum AppointmentStatus
         {
             [Description("Scheduled")] Scheduled = 1,
