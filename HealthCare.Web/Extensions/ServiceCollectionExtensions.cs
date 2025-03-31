@@ -2,9 +2,9 @@
 using HealthCare.Business.Notifications;
 using HealthCare.Business.Services;
 using HealthCare.Data.Context;
+using HealthCare.Data.Email;
 using HealthCare.Data.Repository;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HealthCare.Web.Extensions;
 
@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotifier, Notifier>();
         //services.AddScoped<IPatientService, PatientService>();
         //services.AddScoped<IPatientRepository, PatientRepository>();
+        services.AddSingleton<IEmailService, EmailService>();
 
         services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()

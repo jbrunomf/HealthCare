@@ -1,22 +1,23 @@
 ﻿using System.Security.Claims;
+using HealthCare.Business.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using HealthCare.Business.Models;
 using HealthCare.Data.Context;
-using HealthCare.Data.Migrations;
 using Microsoft.AspNetCore.Authorization;
-using NuGet.ProjectModel;
 
 namespace HealthCare.Web.Controllers
 {
     public class AppointmentsController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public AppointmentsController(AppDbContext context)
+        public AppointmentsController(AppDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         // GET: Appointments
@@ -100,6 +101,14 @@ namespace HealthCare.Web.Controllers
                 _context.Update(schedule);
                 _context.Add(appointment);
                 await _context.SaveChangesAsync();
+
+                
+                var patient = await _context.Patients.FindAsync(appointment.PatientId);
+
+                if (!string.IsNullOrEmpty(patient.Email))
+                    await _emailService.SendEmailAsync(patient.Email, "Medical Schedule",
+                    "Medical Schedule Done!");
+                
                 return RedirectToAction(nameof(Index), appointment.PatientId);
             }
 

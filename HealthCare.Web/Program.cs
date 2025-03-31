@@ -1,3 +1,4 @@
+using DotNetEnv;
 using HealthCare.Data.Context;
 using HealthCare.Web.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
+Env.Load();
 //Register Services
 builder.Services.RegisterServices();
 
