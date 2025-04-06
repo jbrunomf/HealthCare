@@ -6,7 +6,7 @@
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h1>Latest appointments of @ViewBag.Patient.FirstName</h1>
+<h1>Latest appointments of @(ViewBag.Type == "Patient"? ViewBag.Patient.FirstName : ViewBag.Doctor.FirstName)</h1>
 
 <p>
 	<a asp-action="Create">New Appointment</a>

@@ -1,8 +1,5 @@
 ﻿using HealthCare.Business.Interfaces;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.Extensions.Configuration;
-using SendGrid;
-using SendGrid.Helpers.Mail;
+using RestSharp;
 
 namespace HealthCare.Data.Email
 {
@@ -14,15 +11,14 @@ namespace HealthCare.Data.Email
 
         public async Task SendEmailAsync(string toEmail, string subject, string message)
         {
-            var client = new SendGridClient(_apiKey);
-            var from = new EmailAddress(_fromEmail, _fromName);
-            var to = new EmailAddress(toEmail);
-            var msg = MailHelper.CreateSingleEmail(from, to, subject, message, message);
-            var response = await client.SendEmailAsync(msg);
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Failed to send email: {response.StatusCode}");
-            }
+            var client = new RestClient("https://send.api.mailtrap.io/api/send");
+            var request = new RestRequest();
+            request.AddHeader("Authorization", "Bearer 56f68cd31f256b1e70a4de82ce3888b3");
+            request.AddHeader("Content-Type", "application/json");
+            request.AddParameter("application/json",
+                $"{{\"from\":{{\"email\":\"hello@demomailtrap.co\",\"name\":\"Mailtrap Test\"}},\"to\":[{{\"email\":\"jbrunomf@outlook.com\"}}],\"subject\":\"{subject}\",\"text\":\"{message}\",\"category\":\"Integration Test\"}}",
+                ParameterType.RequestBody);
+            var response = client.Post(request);
         }
     }
 }

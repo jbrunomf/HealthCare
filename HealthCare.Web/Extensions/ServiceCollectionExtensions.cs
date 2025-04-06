@@ -14,6 +14,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddScoped<IDoctorService, DoctorService>();
         services.AddScoped<IDoctorRepository, DoctorRepository>();
         services.AddScoped<INotifier, Notifier>();
         services.AddScoped<IPatientService, PatientService>();

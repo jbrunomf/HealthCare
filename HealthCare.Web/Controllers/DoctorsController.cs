@@ -1,5 +1,4 @@
-﻿using System.Drawing.Text;
-using Azure.Identity;
+﻿using System.Security.Claims;
 using HealthCare.Business.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -16,12 +15,27 @@ namespace HealthCare.Web.Controllers
         private readonly IAppointmentService _service;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly IMedicalScheduleService _medicalScheduleService;
+        private readonly INotifier _notifier;
+        private readonly IEmailService _emailService;
+        private readonly IAppointmentService _appointmentService;
+        private readonly IPatientService _patientService;
+        private readonly IDoctorService _doctorService;
 
-        public DoctorsController(AppDbContext context, IAppointmentService service, UserManager<IdentityUser> userManager)
+        public DoctorsController(AppDbContext context, IAppointmentService service,
+            UserManager<IdentityUser> userManager,
+            IMedicalScheduleService medicalScheduleService, INotifier notifier, IEmailService emailService,
+            IAppointmentService appointmentService, IPatientService patientService, IDoctorService doctorService)
         {
             _context = context;
             _service = service;
             _userManager = userManager;
+            _medicalScheduleService = medicalScheduleService;
+            _notifier = notifier;
+            _emailService = emailService;
+            _appointmentService = appointmentService;
+            _patientService = patientService;
+            _doctorService = doctorService;
         }
 
         // GET: Doctors
@@ -70,7 +84,7 @@ namespace HealthCare.Web.Controllers
             if (ModelState.IsValid)
             {
                 //Identity
-                var identityUser = new IdentityUser { UserName = doctor.Email, Email = doctor.Email};
+                var identityUser = new IdentityUser { UserName = doctor.Email, Email = doctor.Email };
                 var result = await _userManager.CreateAsync(identityUser, doctor.Password);
 
                 if (result.Succeeded)
@@ -78,7 +92,7 @@ namespace HealthCare.Web.Controllers
                     doctor.CreatedAt = DateTime.Now;
                     await _userManager.AddToRoleAsync(identityUser, "Doctor");
                     doctor.IdentityUserId = identityUser.Id;
-                    
+
                     _context.Add(doctor);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
@@ -190,6 +204,33 @@ namespace HealthCare.Web.Controllers
         private bool DoctorExists(Guid id)
         {
             return _context.Doctors.Any(e => e.Id == id);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Appointments()
+        {
+            if (!User.Identity.IsAuthenticated) return NotFound();
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var doctor = _doctorService.Find(x => x.IdentityUserId == userId).Result.FirstOrDefault();
+
+            if (doctor is null)
+                throw new Exception("Doctor not found");
+
+            ViewBag.Doctor = doctor;
+
+            var appointments = _context.Appointments
+                .Where(a => a.DoctorId == doctor.Id)
+                .Include(a => a.Doctor)
+                .Include(a => a.Patient)
+                .Include(a => a.MedicalSchedule);
+
+            foreach (var notification in _notifier.GetNotificationAsync())
+            {
+                ModelState.AddModelError(string.Empty, notification.Message);
+            }
+
+            return View(await appointments.ToListAsync());
         }
     }
 }

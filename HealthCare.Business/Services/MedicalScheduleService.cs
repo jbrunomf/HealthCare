@@ -113,45 +113,15 @@ namespace HealthCare.Business.Services
             return true;
         }
 
-        public async Task<bool> MarkAsUnavailable(MedicalSchedule schedule)
+        public async Task<bool> MarkAsUnavailable(Guid scheduleId)
         {
-            if (schedule == null)
-            {
-                Notify("Invalid schedule.");
-                return false;
-            }
-
-            var existingSchedule = await _medicalScheduleRepository.GetByIdAsync(schedule.Id);
-            if (existingSchedule == null)
-            {
-                Notify("Schedule not found.");
-                return false;
-            }
-
-            if (!Validate(new ScheduleValidator(), existingSchedule))
-            {
-                return false;
-            }
-
-            existingSchedule.IsAvailable = false;
-            existingSchedule.UpdatedAt = DateTime.UtcNow;
-
-            await _medicalScheduleRepository.UpdateAsync(existingSchedule);
+            await _medicalScheduleRepository.MarkAsUnavailable(scheduleId);
             return true;
         }
 
-        public async Task<bool> MarkAsAvailable(MedicalSchedule schedule)
+        public async Task<bool> MarkAsAvailable(Guid scheduleId)
         {
-            if (schedule == null)
-            {
-                Notify("The schedule cannot be null.");
-                return false;
-            }
-            
-            schedule.IsAvailable = true;
-            schedule.UpdatedAt = DateTime.UtcNow;
-
-            await _medicalScheduleRepository.UpdateAsync(schedule);
+            await _medicalScheduleRepository.MarkAsAvailable(scheduleId);
             return true;
         }
 

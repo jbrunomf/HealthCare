@@ -8,8 +8,8 @@ namespace HealthCare.Business.Interfaces
         Task<bool> CreateAsync(MedicalSchedule medicalSchedule);
         Task<bool> UpdateAsync(MedicalSchedule medicalSchedule);
         Task<bool> DeleteAsync(int id);
-        Task<bool> MarkAsUnavailable(MedicalSchedule schedule);
-        Task<bool> MarkAsAvailable(MedicalSchedule schedule);
+        Task<bool> MarkAsUnavailable(Guid scheduleId);
+        Task<bool> MarkAsAvailable(Guid scheduleId);
 
         Task<MedicalSchedule> FindAsync(Guid id);
 

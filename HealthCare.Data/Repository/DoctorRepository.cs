@@ -18,5 +18,6 @@ namespace HealthCare.Data.Repository
                 .Where(d => d.SpecialtyId == specialtyId)
                 .ToListAsync();
         }
+        
     }
 }

@@ -97,38 +97,45 @@ namespace HealthCare.Data.Repository
 
             return true;
         }
+        
 
-        public async Task<bool> MarkAsUnavailable(MedicalSchedule schedule)
+        public async Task<bool> MarkAsUnavailable(Guid scheduleId)
         {
-            if (schedule == null) throw new ArgumentNullException(nameof(schedule));
 
-            var existingSchedule = await _context.MedicalSchedules.FirstOrDefaultAsync(s => s.Id == schedule.Id);
-            if (existingSchedule == null)
-                throw new InvalidOperationException($"MedicalSchedule with id {schedule.Id} not found.");
+            try
+            {
+                var existingSchedule = await _context.MedicalSchedules.FirstOrDefaultAsync(s => s.Id == scheduleId);
+                if (existingSchedule == null)
+                    throw new InvalidOperationException($"MedicalSchedule with id {scheduleId} not found.");
 
-            if (!existingSchedule.IsAvailable) return false; // Already unavailable
+                if (!existingSchedule.IsAvailable) return false; // Already unavailable
 
-            existingSchedule.IsAvailable = false;
-            existingSchedule.UpdatedAt = DateTime.UtcNow;
+                existingSchedule.IsAvailable = false;
+                existingSchedule.UpdatedAt = DateTime.UtcNow;
 
-            _context.MedicalSchedules.Update(existingSchedule);
-            await _context.SaveChangesAsync();
+                _context.MedicalSchedules.Update(existingSchedule);
+                await _context.SaveChangesAsync();
 
-            return true;
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
         }
 
-        public async Task<bool> MarkAsAvailable(MedicalSchedule schedule)
+        public async Task<bool> MarkAsAvailable(Guid scheduleId)
         {
-            if (schedule == null) throw new ArgumentNullException(nameof(schedule));
-
-            var existingSchedule = await _context.MedicalSchedules.FirstOrDefaultAsync(s => s.Id == schedule.Id);
+            _context.ChangeTracker.Clear();
+            
+            var existingSchedule = await _context.MedicalSchedules.FirstOrDefaultAsync(s => s.Id == scheduleId);
             if (existingSchedule == null)
-                throw new InvalidOperationException($"MedicalSchedule with id {schedule.Id} not found.");
-
+                throw new InvalidOperationException($"MedicalSchedule with id {scheduleId} not found.");
+            
             if (existingSchedule.IsAvailable) return false; // Already available
 
             existingSchedule.IsAvailable = true;
-            existingSchedule.UpdatedAt = DateTime.UtcNow;
+            existingSchedule.UpdatedAt = DateTime.Now;
 
             _context.MedicalSchedules.Update(existingSchedule);
             await _context.SaveChangesAsync();

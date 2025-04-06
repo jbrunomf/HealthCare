@@ -7,11 +7,13 @@
     <p>Healthcare, a solução completa para a sua saúde.</p>
 </div>
 
-@if (User.IsInRole("Médico"))
+@if (User.IsInRole("Médico") || User.IsInRole("Doctor"))
 {
-	<a class="btn btn-info">Painel do Médico</a>
+    <a asp-controller="Appointments" asp-action="Index" asp-route-role="Doctor" class="btn btn-warning">Doctor
+        Dashboard</a>
 }
-@if (User.IsInRole("Paciente"))
+@if (User.IsInRole("Paciente") || User.IsInRole("Patient"))
 {
-	<a asp-controller="Appointments" asp-action="Index" class="btn btn-info">Appointments View</a>
+    <a asp-controller="Appointments" asp-action="Index" asp-route-role="Patient" class="btn btn-info">Patient
+        Appointments View</a>
 }

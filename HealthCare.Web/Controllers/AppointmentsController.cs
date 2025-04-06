@@ -4,9 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using HealthCare.Business.Models;
-using HealthCare.Business.Notifications;
 using HealthCare.Data.Context;
+using HealthCare.Data.Migrations;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace HealthCare.Web.Controllers
 {
@@ -16,11 +17,14 @@ namespace HealthCare.Web.Controllers
         private readonly IEmailService _emailService;
         private readonly IAppointmentService _appointmentService;
         private readonly IPatientService _patientService;
+        private readonly IDoctorService _doctorService;
         private readonly IMedicalScheduleService _medicalScheduleService;
         private readonly INotifier _notifier;
+        private readonly UserManager<IdentityUser> _userManager;
 
         public AppointmentsController(AppDbContext context, IEmailService emailService, IPatientService patientService,
-            IAppointmentService appointmentService, IMedicalScheduleService medicalScheduleService, INotifier notifier)
+            IAppointmentService appointmentService, IMedicalScheduleService medicalScheduleService, INotifier notifier,
+            IDoctorService doctorService, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _emailService = emailService;
@@ -28,34 +32,61 @@ namespace HealthCare.Web.Controllers
             _appointmentService = appointmentService;
             _medicalScheduleService = medicalScheduleService;
             _notifier = notifier;
+            _doctorService = doctorService;
+            _userManager = userManager;
         }
 
         // GET: Appointments
-        [Authorize(Roles = "Admin,Patient,Doctor,Paciente")]
-        public async Task<IActionResult> Index()
+        [Authorize(Roles = "Admin,Patient,Doctor,Paciente,Médico")]
+        public async Task<IActionResult> Index(string role = "Patient")
         {
             if (!User.Identity.IsAuthenticated) return NotFound();
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var patient = await _patientService.FindAsync(userId);
 
-            if (patient is null)
-                return NotFound("Patient not found");
+            IEnumerable<Appointment> appointments = [];
 
-            ViewBag.Patient = patient;
+            if (role == "Patient")
+            {
+                var patient = await _patientService.FindAsync(userId);
 
-            var appointments = _context.Appointments
-                .Where(a => a.PatientId == patient.Id)
-                .Include(a => a.Doctor)
-                .Include(a => a.Patient)
-                .Include(a => a.MedicalSchedule);
+                if (patient is null)
+                    return NotFound("Patient not found");
+
+                ViewBag.Patient = patient;
+                ViewBag.Type = "Patient";
+
+                appointments = _context.Appointments
+                    .Where(a => a.PatientId == patient.Id)
+                    .Include(a => a.Doctor)
+                    .Include(a => a.Patient)
+                    .Include(a => a.MedicalSchedule);
+            }
+
+            if (role == "Doctor")
+            {
+                var doctor = _doctorService.Find(d => d.IdentityUserId == userId).Result.FirstOrDefault();
+
+                if (doctor is null)
+                    return NotFound("Doctor not found");
+
+                ViewBag.Doctor = doctor;
+                ViewBag.Type = "Doctor";
+
+                appointments = _context.Appointments
+                    .Where(a => a.DoctorId == doctor.Id)
+                    .Include(a => a.Doctor)
+                    .Include(a => a.Patient)
+                    .Include(a => a.MedicalSchedule);
+            }
+
 
             foreach (var notification in _notifier.GetNotificationAsync())
             {
                 ModelState.AddModelError(string.Empty, notification.Message);
             }
 
-            return View(await appointments.ToListAsync());
+            return View(appointments.AsEnumerable().ToList());
         }
 
         // GET: Appointments/Details/5
@@ -108,7 +139,7 @@ namespace HealthCare.Web.Controllers
                 if (schedule is not { IsAvailable: true })
                     return BadRequest("O horário selecionado não está disponível");
 
-                var isScheduleValid = await _medicalScheduleService.MarkAsUnavailable(schedule);
+                var isScheduleValid = await _medicalScheduleService.MarkAsUnavailable(schedule.Id);
 
                 if (isScheduleValid)
                 {
@@ -162,6 +193,10 @@ namespace HealthCare.Web.Controllers
                 return NotFound();
             }
 
+            var user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var isDoctor = await _userManager.IsInRoleAsync(user, "Doctor");
+            var role = isDoctor ? "Doctor" : "Patient";
+
             if (ModelState.IsValid)
             {
                 try
@@ -176,11 +211,18 @@ namespace HealthCare.Web.Controllers
                     if (actualSchedule is null)
                         throw new Exception("Schedule not found");
 
-                    await _medicalScheduleService.MarkAsAvailable(pastSchedule);
+                    await _medicalScheduleService.MarkAsAvailable(pastSchedule.Id);
 
-                    await _medicalScheduleService.MarkAsUnavailable(actualSchedule);
+                    await _medicalScheduleService.MarkAsUnavailable(actualSchedule.Id);
 
                     await _appointmentService.UpdateAsync(appointment);
+
+                    var patient = await _context.Patients.FindAsync(appointment.PatientId);
+                    if (patient != null)
+                    {
+                        await _emailService.SendEmailAsync(patient.Email, "Medical Schedule Changed",
+                            $"Medical Schedule is Changed. New Schedule: {appointment.MedicalSchedule.StartTime} - {appointment.MedicalSchedule.EndTime}");
+                    }
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -194,7 +236,7 @@ namespace HealthCare.Web.Controllers
                     }
                 }
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index), new { Role = role });
             }
 
             ViewData["DoctorId"] = new SelectList(_context.Doctors, "Id", "CRM", appointment.DoctorId);
@@ -224,6 +266,10 @@ namespace HealthCare.Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
+            var user = await _userManager.FindByIdAsync(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var isDoctor = await _userManager.IsInRoleAsync(user, "Doctor");
+            var role = isDoctor ? "Doctor" : "Patient";
+
             var appointment = await _appointmentService.FindAsync(id);
             if (appointment != null)
             {
@@ -231,13 +277,21 @@ namespace HealthCare.Web.Controllers
 
                 var schedule = await _medicalScheduleService.FindAsync(appointment.MedicalScheduleId);
 
+
                 if (schedule is not null)
                 {
-                    await _medicalScheduleService.MarkAsAvailable(schedule);
+                    await _medicalScheduleService.MarkAsAvailable(schedule.Id);
                 }
             }
+            
+            var patient = await _context.Patients.FindAsync(appointment.PatientId);
+            if (patient != null)
+            {
+                await _emailService.SendEmailAsync(patient.Email, "Medical appointment",
+                    "Your appointment has been canceled!");
+            }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction(nameof(Index), new { Role = role });
         }
 
         private bool AppointmentExists(Guid id)

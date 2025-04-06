@@ -1,0 +1,73 @@
+﻿@using HealthCare.Business.Models
+@model IEnumerable<HealthCare.Business.Models.Appointment>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h1>Latest appointments of Dctor @ViewBag.Doctor.FirstName</h1>
+
+<p>
+    <a asp-action="Create">New Appointment</a>
+</p>
+<table class="table">
+    <thead>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Doctor)
+        </th>
+        @* <th>
+                @Html.DisplayNameFor(model => model.Patient)
+            </th> *@
+        @*             <th>
+                @Html.DisplayNameFor(model => model.AppointmentDate)
+            </th> *@
+        <th>
+            @Html.DisplayNameFor(model => model.MedicalSchedule)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Status)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CreatedAt)
+        </th>
+        @*             <th>
+                @Html.DisplayNameFor(model => model.UpdatedAt)
+            </th> *@
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Doctor.FirstName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MedicalSchedule.StartTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreatedAt)
+            </td>
+            @*             <td>
+                @Html.DisplayFor(modelItem => item.UpdatedAt)
+            </td> *@
+            <td>
+                @if (item.Status == Appointment.AppointmentStatus.Scheduled)
+                {
+                    <a asp-action="Edit" asp-controller="Appointments" asp-route-id="@item.Id">Reschedule</a> 
+                    <a asp-action="Delete" asp-controller="Appointments" asp-route-id="@item.Id">Cancel</a> 
+                }
+                <a asp-action="Details" asp-controller="Appointments" asp-route-id="@item.Id">Details</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@Html.ValidationSummary(true, "", new { @class = "text-danger" })
