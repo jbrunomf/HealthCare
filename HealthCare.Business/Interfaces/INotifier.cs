@@ -6,6 +6,7 @@ namespace HealthCare.Business.Interfaces
     {
         bool HasNotifications();
         List<Notification> GetNotificationAsync(Notification notification);
+        List<Notification> GetNotificationAsync();
         void Handle(Notification notification);
     }
 }

@@ -34,7 +34,14 @@ namespace HealthCare.Business.Services
             if (validationResult.IsValid)
                 return true;
 
-            //Send notifications because validation is false.
+            //Notify validation errors.
+            foreach (var result in validationResult.Errors)
+            {
+                _notifier.Handle(new Notification()
+                {
+                    Message = result.ErrorMessage
+                });
+            }
 
             return false;
         }

@@ -12,12 +12,15 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection RegisterServices(this IServiceCollection services)
     {
-        services.AddScoped<IDoctorService, DoctorService>();
+        services.AddScoped<IAppointmentService, AppointmentService>();
+        services.AddScoped<IAppointmentRepository, AppointmentRepository>();
         services.AddScoped<IDoctorRepository, DoctorRepository>();
         services.AddScoped<INotifier, Notifier>();
-        //services.AddScoped<IPatientService, PatientService>();
-        //services.AddScoped<IPatientRepository, PatientRepository>();
+        services.AddScoped<IPatientService, PatientService>();
+        services.AddScoped<IPatientRepository, PatientRepository>();
         services.AddSingleton<IEmailService, EmailService>();
+        services.AddScoped<IMedicalScheduleService, MedicalScheduleService>();
+        services.AddScoped<IMedicalScheduleRepository, MedicalScheduleRepository>();
 
         services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()

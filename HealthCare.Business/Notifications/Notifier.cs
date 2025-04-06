@@ -20,6 +20,10 @@ namespace HealthCare.Business.Notifications
         {
             return _notifications;
         }
+        public List<Notification> GetNotificationAsync()
+        {
+            return _notifications;
+        }
 
         public void Handle(Notification notification)
         {

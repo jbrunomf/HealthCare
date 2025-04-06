@@ -4,7 +4,7 @@ using HealthCare.Business.Models.Validators;
 
 namespace HealthCare.Business.Services
 {
-    public class PatientService: BaseService, IPatientService
+    public class PatientService : BaseService, IPatientService
     {
         private readonly IPatientRepository _repository;
 
@@ -12,6 +12,7 @@ namespace HealthCare.Business.Services
         {
             _repository = repository;
         }
+
         public void Dispose()
         {
             _repository?.Dispose();
@@ -49,9 +50,19 @@ namespace HealthCare.Business.Services
             await _repository.Remove(id);
         }
 
-        public Task<Patient> FindAsync(string id)
+        public async Task<Patient?> FindAsync(string userId)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                Notify("Invalid patient identifier.");
+                return null;
+            }
+
+            var patient = await _repository.FindAsync(userId);
+
+            if (patient == null) Notify("Patient not found.");
+
+            return patient;
         }
     }
 }

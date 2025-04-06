@@ -54,6 +54,7 @@ namespace HealthCare.Data.Repository
             existingSchedule.StartTime = medicalSchedule.StartTime;
             existingSchedule.EndTime = medicalSchedule.EndTime;
             existingSchedule.UpdatedAt = DateTime.UtcNow;
+            existingSchedule.IsAvailable = medicalSchedule.IsAvailable;
 
             _context.MedicalSchedules.Update(existingSchedule);
             await _context.SaveChangesAsync();
@@ -95,6 +96,62 @@ namespace HealthCare.Data.Repository
             await _context.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<bool> MarkAsUnavailable(MedicalSchedule schedule)
+        {
+            if (schedule == null) throw new ArgumentNullException(nameof(schedule));
+
+            var existingSchedule = await _context.MedicalSchedules.FirstOrDefaultAsync(s => s.Id == schedule.Id);
+            if (existingSchedule == null)
+                throw new InvalidOperationException($"MedicalSchedule with id {schedule.Id} not found.");
+
+            if (!existingSchedule.IsAvailable) return false; // Already unavailable
+
+            existingSchedule.IsAvailable = false;
+            existingSchedule.UpdatedAt = DateTime.UtcNow;
+
+            _context.MedicalSchedules.Update(existingSchedule);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> MarkAsAvailable(MedicalSchedule schedule)
+        {
+            if (schedule == null) throw new ArgumentNullException(nameof(schedule));
+
+            var existingSchedule = await _context.MedicalSchedules.FirstOrDefaultAsync(s => s.Id == schedule.Id);
+            if (existingSchedule == null)
+                throw new InvalidOperationException($"MedicalSchedule with id {schedule.Id} not found.");
+
+            if (existingSchedule.IsAvailable) return false; // Already available
+
+            existingSchedule.IsAvailable = true;
+            existingSchedule.UpdatedAt = DateTime.UtcNow;
+
+            _context.MedicalSchedules.Update(existingSchedule);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<MedicalSchedule> FindAsync(Guid id)
+        {
+            var schedule = await _context.MedicalSchedules.FirstOrDefaultAsync(s => s.Id == id);
+            if (schedule == null) throw new InvalidOperationException($"MedicalSchedule with id {id} not found.");
+
+            return schedule;
+        }
+
+        public async Task<MedicalSchedule?> GetLastValidScheduleForAppointment(Appointment appointment)
+        {
+            var lstSchedules =
+                _context.MedicalSchedules.Where(s => s.Appointments.Contains(appointment));
+
+            var pastSchedule = lstSchedules.FirstOrDefault(s => s.IsAvailable == false);
+
+            return await Task.FromResult(pastSchedule);
         }
     }
 }

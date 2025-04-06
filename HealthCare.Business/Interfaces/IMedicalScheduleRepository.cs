@@ -11,5 +11,10 @@ namespace HealthCare.Business.Interfaces
         Task DeleteAsync(Guid id);
         Task<List<MedicalSchedule>> GetAvailableSlots(Guid doctorId, DateTime date);
         Task<bool> BookAppointment(Guid scheduleId, Guid patientId);
+        Task<bool> MarkAsUnavailable(MedicalSchedule schedule);
+        Task<bool> MarkAsAvailable(MedicalSchedule schedule);
+        Task<MedicalSchedule> FindAsync(Guid id);
+
+        Task<MedicalSchedule?> GetLastValidScheduleForAppointment(Appointment appointment);
     }
 }

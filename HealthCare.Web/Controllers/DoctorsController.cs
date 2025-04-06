@@ -13,11 +13,11 @@ namespace HealthCare.Web.Controllers
     public class DoctorsController : Controller
     {
         private readonly AppDbContext _context;
-        private readonly IDoctorService _service;
+        private readonly IAppointmentService _service;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
 
-        public DoctorsController(AppDbContext context, IDoctorService service, UserManager<IdentityUser> userManager)
+        public DoctorsController(AppDbContext context, IAppointmentService service, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _service = service;

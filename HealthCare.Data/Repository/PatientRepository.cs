@@ -19,9 +19,9 @@ namespace HealthCare.Data.Repository
             return await DbSet.FirstOrDefaultAsync(p => p.Document == document);
         }
 
-        public async Task<Patient?> FindAsync(Guid id)
+        public async Task<Patient?> FindAsync(string userId)
         {
-            return await _context.Patients.FirstOrDefaultAsync(x => x.Id == id);
+            return await _context.Patients.FirstOrDefaultAsync(x => x.IdentityUserId == userId);
         }
     }
 }
