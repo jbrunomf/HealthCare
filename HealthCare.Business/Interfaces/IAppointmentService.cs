@@ -1,4 +1,5 @@
-﻿using HealthCare.Business.Models;
+﻿using System.Linq.Expressions;
+using HealthCare.Business.Models;
 
 namespace HealthCare.Business.Interfaces
 {
@@ -9,5 +10,7 @@ namespace HealthCare.Business.Interfaces
         Task DeleteAsync(Guid id);
         Task<Appointment> FindAsync(Guid id);
         Task MarkAsCancelled(Appointment appointment);
+
+        Task<Appointment> Find(Expression<Func<Appointment, bool>> predicate);
     }
 }

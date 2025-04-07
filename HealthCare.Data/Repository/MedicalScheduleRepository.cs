@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HealthCare.Data.Repository
 {
-    public class MedicalScheduleRepository : IMedicalScheduleRepository
+    public class MedicalScheduleRepository : Repository<MedicalSchedule>, IMedicalScheduleRepository
     {
-        public MedicalScheduleRepository(AppDbContext context)
+        public MedicalScheduleRepository(AppDbContext context) : base(context)
         {
             _context = context;
         }
@@ -160,5 +160,6 @@ namespace HealthCare.Data.Repository
 
             return await Task.FromResult(pastSchedule);
         }
+        
     }
 }

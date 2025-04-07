@@ -1,4 +1,5 @@
-﻿using HealthCare.Business.Interfaces;
+﻿using System.Linq.Expressions;
+using HealthCare.Business.Interfaces;
 using HealthCare.Business.Models;
 using HealthCare.Business.Models.Validators;
 
@@ -7,11 +8,13 @@ namespace HealthCare.Business.Services
     public class AppointmentService : BaseService, IAppointmentService
     {
         private readonly IAppointmentRepository _repository;
+        private readonly IMedicalScheduleRepository _medicalScheduleRepository;
 
-        public AppointmentService(IAppointmentRepository repository, INotifier notifier) : base(notifier)
+        public AppointmentService(IAppointmentRepository repository,  IMedicalScheduleRepository medicalScheduleRepository, INotifier notifier) : base(notifier)
         {
             {
                 _repository = repository;
+                _medicalScheduleRepository = medicalScheduleRepository;
             }
         }
 
@@ -66,6 +69,11 @@ namespace HealthCare.Business.Services
             await _repository.Update(appointment);
         }
 
+        public Task<Appointment> Find(Expression<Func<Appointment, bool>> predicate)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task DeleteAsync(Guid id)
         {
             var appointment = await _repository.FindAsync(id);
@@ -87,13 +95,15 @@ namespace HealthCare.Business.Services
             }
 
             var appointment = await _repository.FindAsync(id);
+            var medicalSchedule = await _medicalScheduleRepository.FindAsync(appointment.MedicalScheduleId);
 
-            if (appointment == null)
+            if (appointment == null || medicalSchedule == null)
             {
                 Notify("Appointment not found.");
                 return null;
             }
-
+            
+            appointment.MedicalSchedule = medicalSchedule;
             return appointment;
         }
         

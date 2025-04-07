@@ -60,7 +60,8 @@ namespace HealthCare.Web.Controllers
                     .Where(a => a.PatientId == patient.Id)
                     .Include(a => a.Doctor)
                     .Include(a => a.Patient)
-                    .Include(a => a.MedicalSchedule);
+                    .Include(a => a.MedicalSchedule)
+                    .OrderBy(a => a.CreatedAt);
             }
 
             if (role == "Doctor")
@@ -77,7 +78,8 @@ namespace HealthCare.Web.Controllers
                     .Where(a => a.DoctorId == doctor.Id)
                     .Include(a => a.Doctor)
                     .Include(a => a.Patient)
-                    .Include(a => a.MedicalSchedule);
+                    .Include(a => a.MedicalSchedule)
+                    .OrderBy(a => a.CreatedAt);
             }
 
 
@@ -283,7 +285,7 @@ namespace HealthCare.Web.Controllers
                     await _medicalScheduleService.MarkAsAvailable(schedule.Id);
                 }
             }
-            
+
             var patient = await _context.Patients.FindAsync(appointment.PatientId);
             if (patient != null)
             {

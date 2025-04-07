@@ -1,4 +1,5 @@
-﻿using HealthCare.Business.Interfaces;
+﻿using System.Linq.Expressions;
+using HealthCare.Business.Interfaces;
 using HealthCare.Business.Models;
 using HealthCare.Data.Context;
 using Microsoft.EntityFrameworkCore;
@@ -31,12 +32,11 @@ namespace HealthCare.Data.Repository
             await base.Remove(id);
         }
 
-        public async Task<Appointment> FindAsync(Guid id)
+        public async Task<Appointment?> FindAsync(Guid id)
         {
             if (id == Guid.Empty) throw new ArgumentException("Invalid ID.", nameof(id));
 
-            return await DbSet.
-                Include(a => a.Doctor)
+            return await DbSet.Include(a => a.Doctor)
                 .Include(a => a.Patient)
                 .Include(a => a.MedicalSchedule)
                 .FirstOrDefaultAsync(a => a.Id == id);
