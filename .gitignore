@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /HealthCare.Web/.env
 /HealthCare.Data/.env
+/.idea/.idea.HealthCare/.idea
