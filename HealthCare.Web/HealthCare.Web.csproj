@@ -33,4 +33,8 @@
     <Folder Include="Areas\Identity\Data\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ContainerPort Include="8081" />
+  </ItemGroup>
+
 </Project>

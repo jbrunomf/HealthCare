@@ -5,6 +5,7 @@
 	ViewData["Title"] = "Index";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<h1>@(ViewBag.Type == "Patient"? "Patient Dashboard" : "Doctor's Dashboard")</h1>
 
 <h1>Latest appointments of @(ViewBag.Type == "Patient"? ViewBag.Patient.FirstName : ViewBag.Doctor.FirstName)</h1>
 
@@ -17,12 +18,6 @@
 		<th>
 			@Html.DisplayNameFor(model => model.Doctor)
 		</th>
-		@* <th>
-                @Html.DisplayNameFor(model => model.Patient)
-            </th> *@
-		@*             <th>
-                @Html.DisplayNameFor(model => model.AppointmentDate)
-            </th> *@
 		<th>
 			@Html.DisplayNameFor(model => model.MedicalSchedule)
 		</th>
@@ -32,9 +27,6 @@
 		<th>
 			@Html.DisplayNameFor(model => model.CreatedAt)
 		</th>
-		@*             <th>
-                @Html.DisplayNameFor(model => model.UpdatedAt)
-            </th> *@
 		<th></th>
 	</tr>
 	</thead>
