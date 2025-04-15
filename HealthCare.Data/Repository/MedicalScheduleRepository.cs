@@ -80,25 +80,7 @@ namespace HealthCare.Data.Repository
 
             return availableSlots;
         }
-
-        public async Task<bool> BookAppointment(Guid scheduleId, Guid patientId)
-        {
-            var schedule = await _context.MedicalSchedules.FirstOrDefaultAsync(s => s.Id == scheduleId);
-            if (schedule == null)
-                throw new InvalidOperationException($"MedicalSchedule with id {scheduleId} not found.");
-
-            var appointmentExists = await _context.Appointments.AnyAsync(a => a.Id == scheduleId && a.Id == patientId);
-            if (appointmentExists) return false; // Appointment already exists
-
-            var appointment = new Appointment { Id = Guid.NewGuid(), UpdatedAt = DateTime.UtcNow };
-
-            await _context.Appointments.AddAsync(appointment);
-            await _context.SaveChangesAsync();
-
-            return true;
-        }
         
-
         public async Task<bool> MarkAsUnavailable(Guid scheduleId)
         {
 

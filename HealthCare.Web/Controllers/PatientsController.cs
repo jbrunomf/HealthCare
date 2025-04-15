@@ -70,7 +70,7 @@ namespace HealthCare.Web.Controllers
                     await _userManager.AddToRoleAsync(identityUser, "Patient");
                     patient.IdentityUserId = identityUser.Id;
 
-                    _context.Add(patient);
+                    await _context.Patients.AddAsync(patient);
                     await _context.SaveChangesAsync();
                     return RedirectToAction(nameof(Index));
                 }

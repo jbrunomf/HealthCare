@@ -5,6 +5,7 @@ using HealthCare.Data.Context;
 using HealthCare.Data.Email;
 using HealthCare.Data.Repository;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace HealthCare.Web.Extensions;
 
@@ -22,7 +23,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IEmailService, EmailService>();
         services.AddScoped<IMedicalScheduleService, MedicalScheduleService>();
         services.AddScoped<IMedicalScheduleRepository, MedicalScheduleRepository>();
-
+        services.AddTransient<IEmailSender, EmailSender>();
         services.AddIdentity<IdentityUser, IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddDefaultTokenProviders();

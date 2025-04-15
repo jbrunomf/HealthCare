@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using HealthCare.Business.Models;
 using HealthCare.Data.Context;
-using HealthCare.Data.Migrations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
@@ -37,16 +36,14 @@ namespace HealthCare.Web.Controllers
         }
 
         // GET: Appointments
-        [Authorize(Roles = "Admin,Patient,Doctor,Paciente,Médico")]
+        [Authorize(Roles = "Patient,Doctor,Paciente,Medico")]
         public async Task<IActionResult> Index(string role = "Patient")
         {
             if (!User.Identity.IsAuthenticated) return NotFound();
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            IEnumerable<Appointment> appointments = [];
-
-            if (role == "Patient")
+            if (role == "Patient" || role == "Paciente")
             {
                 var patient = await _patientService.FindAsync(userId);
 
@@ -56,12 +53,17 @@ namespace HealthCare.Web.Controllers
                 ViewBag.Patient = patient;
                 ViewBag.Type = "Patient";
 
-                appointments = _context.Appointments
+                // Fix for CS8602 and CS8622: Ensure nullability is handled properly in the lambda expression and dereferencing.
+
+                var appointments = await _context.Appointments
                     .Where(a => a.PatientId == patient.Id)
                     .Include(a => a.Doctor)
                     .Include(a => a.Patient)
-                    .Include(a => a.MedicalSchedule)
-                    .OrderBy(a => a.CreatedAt);
+                    .Include(a => a.MedicalSchedule!) // Use null-forgiving operator to suppress CS8602
+                    .OrderBy(a => a.CreatedAt)
+                    .ToListAsync();
+
+                return View(appointments);
             }
 
             if (role == "Doctor")
@@ -74,21 +76,23 @@ namespace HealthCare.Web.Controllers
                 ViewBag.Doctor = doctor;
                 ViewBag.Type = "Doctor";
 
-                appointments = _context.Appointments
+                var appointments = await _context.Appointments
                     .Where(a => a.DoctorId == doctor.Id)
                     .Include(a => a.Doctor)
                     .Include(a => a.Patient)
                     .Include(a => a.MedicalSchedule)
-                    .OrderBy(a => a.CreatedAt);
+                    .OrderBy(a => a.CreatedAt).ToListAsync();
+
+                foreach (var notification in _notifier.GetNotificationAsync())
+                {
+                    ModelState.AddModelError(string.Empty, notification.Message);
+                }
+
+                return View(appointments);
             }
 
+            return View();
 
-            foreach (var notification in _notifier.GetNotificationAsync())
-            {
-                ModelState.AddModelError(string.Empty, notification.Message);
-            }
-
-            return View(appointments.AsEnumerable().ToList());
         }
 
         // GET: Appointments/Details/5
@@ -146,7 +150,7 @@ namespace HealthCare.Web.Controllers
                 if (isScheduleValid)
                 {
                     await _appointmentService.CreateAsync(appointment);
-                    var patient = await _context.Patients.FindAsync(appointment.PatientId);
+                    var patient = await _context.Patients.FirstOrDefaultAsync(x => x.Id == appointment.PatientId);
                     if (patient != null)
                     {
                         await _emailService.SendEmailAsync(patient.Email, "Medical Schedule", "Medical Schedule Done!");

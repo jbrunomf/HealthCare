@@ -137,7 +137,7 @@ namespace HealthCare.Business.Services
 
         public void Dispose()
         {
-            Console.WriteLine("Disposing..");
+            _medicalScheduleRepository.Dispose();
         }
     }
 }
