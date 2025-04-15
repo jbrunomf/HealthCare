@@ -43,9 +43,9 @@ namespace HealthCare.Web.Controllers
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            if (role == "Patient" || role == "Paciente")
+            if (role is "Patient" or "Paciente")
             {
-                var patient = await _patientService.FindAsync(userId);
+                var patient = await _context.Patients.FirstOrDefaultAsync(x => x.IdentityUserId == userId);
 
                 if (patient is null)
                     return NotFound("Patient not found");
@@ -151,10 +151,10 @@ namespace HealthCare.Web.Controllers
                 {
                     await _appointmentService.CreateAsync(appointment);
                     var patient = await _context.Patients.FirstOrDefaultAsync(x => x.Id == appointment.PatientId);
-                    if (patient != null)
-                    {
-                        await _emailService.SendEmailAsync(patient.Email, "Medical Schedule", "Medical Schedule Done!");
-                    }
+                    //if (patient != null)
+                    //{
+                    //    await _emailService.SendEmailAsync(patient.Email, "Medical Schedule", "Medical Schedule Done!");
+                    //}
                 }
 
                 if (!_notifier.HasNotifications()) return RedirectToAction(nameof(Index), appointment.PatientId);

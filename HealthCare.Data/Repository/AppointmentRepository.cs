@@ -16,7 +16,8 @@ namespace HealthCare.Data.Repository
         {
             if (appointment == null) throw new ArgumentNullException(nameof(appointment));
 
-            await base.CreateAsync(appointment);
+            await _context.Appointments.AddAsync(appointment);
+            await _context.SaveChangesAsync();
         }
 
         public override async Task Update(Appointment appointment)
